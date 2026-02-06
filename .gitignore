@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+eggs/
+*.egg-info/
+.env
+
+# Distribution / packaging
+.Python
+wheels/
+share/python-wheels/
+*.whl
+
+# Type checker cache directory
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# pytest cache
+.pytest_cache/
+
+# Sphinx documentation
+docs/_build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE-specific files (add to your global gitignore for personal use)
+.idea/  # For PyCharm
+.vscode/ # For VS Code (only if you want to ignore workspace settings)
+*.swp   # For Vim
+.DS_Store # For macOS
