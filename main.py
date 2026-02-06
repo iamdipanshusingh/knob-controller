@@ -6,9 +6,6 @@ from pynput.keyboard import Key, Controller, Listener
 
 keyboard = Controller()
 
-RESET_TIMEOUT = 0.5  # Seconds of inactivity before resetting counter
-
-# Track modifier key state
 shift_pressed = False
 ctrl_pressed = False
 
@@ -174,7 +171,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # Start keyboard listener in background thread
     listener = Listener(on_press=on_key_press, on_release=on_key_release)
     listener.start()
 
