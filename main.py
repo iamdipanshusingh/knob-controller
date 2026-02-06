@@ -1,10 +1,6 @@
 import base64
-import json
-import subprocess
 import tempfile
-from time import sleep
 import hid
-import pync
 from pynput.keyboard import Key, Controller, Listener
 
 keyboard = Controller()
