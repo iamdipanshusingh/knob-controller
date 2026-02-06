@@ -152,12 +152,12 @@ def main():
                         previous_track()
                     set_volume(volume)
                 elif ctrl_pressed:
-                    volume = get_volume()
                     if direction == 1:
+                        volume = get_volume()
                         toggle_play_pause()
+                        set_volume(volume)
                     else:
                         mute()
-                    set_volume(volume)
                 else:
                     if direction == 1:
                         volume_up()
