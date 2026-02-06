@@ -1,4 +1,10 @@
+import base64
+import json
+import subprocess
+import tempfile
+from time import sleep
 import hid
+import pync
 from pynput.keyboard import Key, Controller, Listener
 
 keyboard = Controller()
@@ -56,6 +62,31 @@ def volume_up():
 def volume_down():
     keyboard.press(Key.media_volume_down)
     keyboard.release(Key.media_volume_down)
+
+
+# TODO: make use of this artwork
+def decode_artwork(artwork_data):
+    """Decode base64 artwork and return temp file path"""
+    if not artwork_data:
+        return None
+
+    try:
+        # Handle data URL format
+        if artwork_data.startswith("data:"):
+            artwork_data = artwork_data.split("base64,")[1]
+
+        # Decode base64
+        image_bytes = base64.b64decode(artwork_data)
+
+        # Create temp file
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png", dir="/tmp")
+        temp_file.write(image_bytes)
+        temp_file.close()
+
+        return temp_file.name
+    except Exception as e:
+        print(f"Artwork decode error: {e}")
+        return None
 
 
 def main():
