@@ -4,8 +4,6 @@ import hid
 from pynput.keyboard import Key, Controller, Listener
 
 keyboard = Controller()
-VENDOR_ID = 0x041E
-PRODUCT_ID = 0x3287
 
 RESET_TIMEOUT = 0.5  # Seconds of inactivity before resetting counter
 
@@ -85,8 +83,35 @@ def decode_artwork(artwork_data):
         return None
 
 
+def get_device(device_name="Creative Pebble"):
+    keywords = device_name.split(" ")
+
+    for device in hid.enumerate():
+        product = device["product_string"]
+        if any(keyword.lower() in product.lower() for keyword in keywords):
+            print(f"Found device: {product}")
+            print("-" * 50)
+            print(f"Vendor ID: 0x{device['vendor_id']:04x}")
+            print(f"Product ID: 0x{device['product_id']:04x}")
+            print(f"Product: {device['product_string']}")
+            print(f"Manufacturer: {device['manufacturer_string']}")
+            print("-" * 50)
+            return {
+                "vendor_id": int(f"0x{device['vendor_id']:04x}", 16),
+                "product_id": int(f"0x{device['product_id']:04x}", 16),
+            }
+    return None
+
+
 def main():
     global shift_pressed, ctrl_pressed
+
+    my_device = get_device()
+    if not my_device:
+        print("Device not found")
+        return
+    VENDOR_ID = my_device["vendor_id"]
+    PRODUCT_ID = my_device["product_id"]
 
     device = hid.device()
     device.open(VENDOR_ID, PRODUCT_ID)
