@@ -1,4 +1,5 @@
 import base64
+import subprocess
 import tempfile
 import hid
 from pynput.keyboard import Key, Controller, Listener
@@ -103,6 +104,18 @@ def get_device(device_name="Creative Pebble"):
     return None
 
 
+def get_volume():
+    cmd = "output volume of (get volume settings)"
+    result = subprocess.run(["osascript", "-e", cmd], capture_output=True, text=True)
+    return result.stdout
+
+
+def set_volume(volume):
+    cmd = f"set volume output volume {volume}"
+    result = subprocess.run(["osascript", "-e", cmd], capture_output=True, text=True)
+    return result.stdout
+
+
 def main():
     global shift_pressed, ctrl_pressed
 
@@ -132,18 +145,22 @@ def main():
                 if data[1] == 0:
                     continue
 
-                direction = 1 if data[1] == 1 else -1
+                direction = data[1]
 
                 if shift_pressed:
+                    volume = get_volume()
                     if direction == 1:
                         next_track()
                     else:
                         previous_track()
+                    set_volume(volume)
                 elif ctrl_pressed:
+                    volume = get_volume()
                     if direction == 1:
                         toggle_play_pause()
                     else:
                         mute()
+                    set_volume(volume)
                 else:
                     if direction == 1:
                         volume_up()
