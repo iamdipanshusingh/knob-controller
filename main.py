@@ -1,6 +1,7 @@
 import base64
 import subprocess
 import tempfile
+import time
 import hid
 from pynput.keyboard import Key, Controller, Listener
 
@@ -84,6 +85,8 @@ def decode_artwork(artwork_data):
 def get_device(device_name="Creative Pebble"):
     keywords = device_name.split(" ")
 
+    my_device = None
+
     for device in hid.enumerate():
         product = device["product_string"]
         if any(keyword.lower() in product.lower() for keyword in keywords):
@@ -94,32 +97,15 @@ def get_device(device_name="Creative Pebble"):
             print(f"Product: {device['product_string']}")
             print(f"Manufacturer: {device['manufacturer_string']}")
             print("-" * 50)
-            return {
+            my_device = {
                 "vendor_id": int(f"0x{device['vendor_id']:04x}", 16),
                 "product_id": int(f"0x{device['product_id']:04x}", 16),
             }
-    return None
 
-
-def get_volume():
-    cmd = "output volume of (get volume settings)"
-    result = subprocess.run(["osascript", "-e", cmd], capture_output=True, text=True)
-    return result.stdout
-
-
-def set_volume(volume):
-    cmd = f"set volume output volume {volume}"
-    result = subprocess.run(["osascript", "-e", cmd], capture_output=True, text=True)
-    return result.stdout
-
-
-def main():
-    global shift_pressed, ctrl_pressed
-
-    my_device = get_device()
     if not my_device:
         print("Device not found")
-        return
+        return None
+
     VENDOR_ID = my_device["vendor_id"]
     PRODUCT_ID = my_device["product_id"]
 
@@ -134,6 +120,22 @@ def main():
     print("Ctrl + counterclockwise → Mute")
     print("Normal rotation → Volume (unchanged)")
 
+    return device
+
+
+def get_volume():
+    cmd = "output volume of (get volume settings)"
+    result = subprocess.run(["osascript", "-e", cmd], capture_output=True, text=True)
+    return result.stdout
+
+
+def set_volume(volume):
+    cmd = f"set volume output volume {volume}"
+    result = subprocess.run(["osascript", "-e", cmd], capture_output=True, text=True)
+    return result.stdout
+
+
+def listen_for_knob(device):
     try:
         while True:
             data = device.read(64)
@@ -166,8 +168,28 @@ def main():
 
     except KeyboardInterrupt:
         print("\nStopped listening")
+    except Exception:
+        print("Error listening for knob rotation")
+        check_device_and_listen()
     finally:
         device.close()
+
+
+def check_device_and_listen():
+    device = None
+    while True:
+        device = get_device()
+        if device:
+            break
+        time.sleep(1)
+
+    listen_for_knob(device)
+
+
+def main():
+    global shift_pressed, ctrl_pressed
+
+    check_device_and_listen()
 
 
 if __name__ == "__main__":
