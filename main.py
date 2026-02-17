@@ -85,8 +85,6 @@ def decode_artwork(artwork_data):
 def get_device(device_name="Creative Pebble"):
     keywords = device_name.split(" ")
 
-    my_device = None
-
     for device in hid.enumerate():
         product = device["product_string"]
         if any(keyword.lower() in product.lower() for keyword in keywords):
@@ -97,30 +95,12 @@ def get_device(device_name="Creative Pebble"):
             print(f"Product: {device['product_string']}")
             print(f"Manufacturer: {device['manufacturer_string']}")
             print("-" * 50)
-            my_device = {
+            return {
                 "vendor_id": int(f"0x{device['vendor_id']:04x}", 16),
                 "product_id": int(f"0x{device['product_id']:04x}", 16),
             }
 
-    if not my_device:
-        print("Device not found")
-        return None
-
-    VENDOR_ID = my_device["vendor_id"]
-    PRODUCT_ID = my_device["product_id"]
-
-    device = hid.device()
-    device.open(VENDOR_ID, PRODUCT_ID)
-    device.set_nonblocking(True)
-
-    print("Listening for knob rotation... Press Ctrl+C to exit")
-    print("Left Shift + clockwise → Next track")
-    print("Left Shift + counterclockwise → Previous track")
-    print("Ctrl + clockwise → Play/Pause")
-    print("Ctrl + counterclockwise → Mute")
-    print("Normal rotation → Volume (unchanged)")
-
-    return device
+    return None
 
 
 def get_volume():
@@ -166,24 +146,39 @@ def listen_for_knob(device):
                     else:
                         volume_down()
 
-    except KeyboardInterrupt:
-        print("\nStopped listening")
-    except Exception:
-        print("Error listening for knob rotation")
-        check_device_and_listen()
     finally:
         device.close()
 
 
 def check_device_and_listen():
     device = None
-    while True:
-        device = get_device()
-        if device:
-            break
-        time.sleep(1)
+    try:
+        while not device:
+            device = get_device()
+            if not device:
+                raise Exception("Device not found")
 
-    listen_for_knob(device)
+        VENDOR_ID = device["vendor_id"]
+        PRODUCT_ID = device["product_id"]
+
+        device = hid.device()
+        device.open(VENDOR_ID, PRODUCT_ID)
+        device.set_nonblocking(True)
+
+        print("Listening for knob rotation... Press Ctrl+C to exit")
+        print("Left Shift + clockwise → Next track")
+        print("Left Shift + counterclockwise → Previous track")
+        print("Ctrl + clockwise → Play/Pause")
+        print("Ctrl + counterclockwise → Mute")
+        print("Normal rotation → Volume (unchanged)")
+
+        listen_for_knob(device)
+    except Exception as e:
+        print(e)
+        time.sleep(1)
+        check_device_and_listen()
+    except KeyboardInterrupt:
+        print("\nStopped listening")
 
 
 def main():
